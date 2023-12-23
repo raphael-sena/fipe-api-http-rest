@@ -1,15 +1,21 @@
 package br.com.raphaelsena.tabelafipe.main;
 
+import br.com.raphaelsena.tabelafipe.model.Dados;
+import br.com.raphaelsena.tabelafipe.model.Modelos;
 import br.com.raphaelsena.tabelafipe.service.ConsumoApi;
+import br.com.raphaelsena.tabelafipe.service.ConverteDados;
+import br.com.raphaelsena.tabelafipe.service.IConverteDados;
 
 import java.net.URL;
+import java.util.Comparator;
 import java.util.Scanner;
 
 public class Program {
     private Scanner sc = new Scanner(System.in);
-
-    private final String URL_BASE = "https://parallelum.com.br/fipe/api/v1/";
     private ConsumoApi consumo = new ConsumoApi();
+    private ConverteDados conversor = new ConverteDados();
+    private final String URL_BASE = "https://parallelum.com.br/fipe/api/v1/";
+
     public void exibeMenu() {
 
 
@@ -38,5 +44,22 @@ public class Program {
         var json = consumo.obterDados(endereco);
         System.out.println(json);
 
+        var marcas = conversor.obterLista(json, Dados.class);
+        marcas.stream()
+                .sorted(Comparator.comparing(Dados::codigo))
+                .forEach(System.out::println);
+
+        System.out.println("Informe o codigo da marca para consulta: ");
+        var codigoMarca = sc.nextLine();
+
+        endereco = endereco + "/" + codigoMarca + "/modelos";
+        json = consumo.obterDados(endereco);
+
+        var modeloLista = conversor.obterDados(json, Modelos.class);
+
+        System.out.println("\nModelos dessa marca: ");
+        modeloLista.modelos().stream()
+                .sorted(Comparator.comparing(Dados::codigo))
+                .forEach(System.out::println);
     }
 }
